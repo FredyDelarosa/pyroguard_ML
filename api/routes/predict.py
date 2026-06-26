@@ -54,6 +54,7 @@ def create_prediction(request: PredictionRequest, db: Session = Depends(get_db))
     # 5. Retornar el payload final al cliente
     return PredictionResponse(
         id_prediccion=nueva_prediccion.id_prediccion,
+        id_zona=nueva_prediccion.id_zona,
         nivel_riesgo=nueva_prediccion.nivel_riesgo,
         detalles_modelos=nueva_prediccion.resultados_json,
         directiva_accion=nueva_prediccion.directiva_nlp,
@@ -70,6 +71,7 @@ def get_prediction_history(skip: int = 0, limit: int = 50, db: Session = Depends
         resultados.append(
             PredictionResponse(
                 id_prediccion=p.id_prediccion,
+                id_zona=p.id_zona,
                 nivel_riesgo=p.nivel_riesgo,
                 detalles_modelos=p.resultados_json,
                 directiva_accion=p.directiva_nlp,

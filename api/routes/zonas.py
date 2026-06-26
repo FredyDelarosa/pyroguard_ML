@@ -13,9 +13,23 @@ router = APIRouter()
 @router.get("/", response_model=List[ZonaResponse])
 def listar_zonas(db: Session = Depends(get_db)):
     """
-    Devuelve la lista de todas las Zonas Protegidas registradas en PostGIS.
+    Devuelve la lista de todas las Zonas Protegidas registradas en PostGIS, incluyendo su geometría GeoJSON.
     """
-    return db.query(ZonaProtegida).all()
+    resultados = db.query(
+        ZonaProtegida.id_zona,
+        ZonaProtegida.nombre,
+        ZonaProtegida.area_hectareas,
+        func.ST_AsGeoJSON(ZonaProtegida.geometria).label("geojson")
+    ).all()
+    
+    return [
+        ZonaResponse(
+            id_zona=r.id_zona,
+            nombre=r.nombre,
+            area_hectareas=r.area_hectareas or 0.0,
+            geojson=r.geojson
+        ) for r in resultados
+    ]
 
 @router.post("/", response_model=ZonaResponse)
 def crear_zona_protegida(zona_in: ZonaCreate, db: Session = Depends(get_db)):
