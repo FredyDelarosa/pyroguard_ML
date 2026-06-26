@@ -55,11 +55,12 @@ def load_reserves():
             if count == 0:
                 print(f"Insertando: {nombre} ({area:.2f} ha)...")
                 # Se utiliza ST_GeomFromText de PostGIS indicando el SRID 4326 (WGS84)
+                import uuid
                 insert_query = text("""
-                    INSERT INTO Zonas_Protegidas (nombre, geometria, area_hectareas) 
-                    VALUES (:nombre, ST_GeomFromText(:geom_wkt, 4326), :area)
+                    INSERT INTO Zonas_Protegidas (id_zona, nombre, geometria, area_hectareas) 
+                    VALUES (:id_zona, :nombre, ST_GeomFromText(:geom_wkt, 4326), :area)
                 """)
-                conn.execute(insert_query, {"nombre": nombre, "geom_wkt": geom_wkt, "area": area})
+                conn.execute(insert_query, {"id_zona": str(uuid.uuid4()), "nombre": nombre, "geom_wkt": geom_wkt, "area": area})
             else:
                 print(f"Omitiendo: La reserva '{nombre}' ya existe en la base de datos.")
                 

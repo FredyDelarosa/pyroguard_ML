@@ -71,9 +71,10 @@ def load_incidentes():
         # Limpiar tabla previa si existieran para evitar duplicados
         conn.execute(text("TRUNCATE TABLE incidentes_historicos RESTART IDENTITY CASCADE"))
         
+        import uuid
         insert_query = text("""
-            INSERT INTO incidentes_historicos (id_zona, fecha_deteccion, fuente, coordenada) 
-            VALUES (:id_zona, :fecha, :fuente, ST_GeomFromText(:geom_wkt, 4326))
+            INSERT INTO incidentes_historicos (id_incidente, id_zona, fecha_deteccion, fuente, coordenada) 
+            VALUES (:id_incidente, :id_zona, :fecha, :fuente, ST_GeomFromText(:geom_wkt, 4326))
         """)
         
         count = 0
@@ -87,6 +88,7 @@ def load_incidentes():
                 id_zona = row['id_zona']
                 
                 conn.execute(insert_query, {
+                    "id_incidente": str(uuid.uuid4()),
                     "id_zona": id_zona,
                     "fecha": fecha,
                     "fuente": fuente,
