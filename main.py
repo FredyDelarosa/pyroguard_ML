@@ -11,7 +11,8 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title="PyroGuard AI - API",
     description="Microservicio RESTful de Inteligencia Artificial para la predicción de incendios forestales usando Machine Learning Híbrido (K-Means + Isolation Forest) y LangChain.",
-    version="1.0.0"
+    version="1.0.0",
+    root_path="/ml"
 )
 
 # Configuración de CORS (Permite conexiones desde cualquier frontend en desarrollo)
