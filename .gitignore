@@ -1,0 +1,26 @@
+# Entornos virtuales
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Variables de entorno
+.env
+.env.*
+!.env.example
+
+# Notebooks (Los checkpoints no van a Git)
+.ipynb_checkpoints/
+
+# Opcional: ignorar datasets pesados si son > 100MB (GitHub limit)
+# data/*.csv
+# data/*.geojson
+
+# IDEs
+.idea/
+.vscode/

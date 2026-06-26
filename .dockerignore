@@ -1,0 +1,29 @@
+# Git
+.git
+.gitignore
+
+# Entornos virtuales locales
+.venv
+venv
+env
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+
+# Notebooks (Docker solo corre la API, no necesita Jupyter)
+.ipynb_checkpoints
+*.ipynb
+
+# Variables de entorno (Dejar que docker-compose inyecte la .env maestra)
+.env
+.env.*
+
+# Docker y archivos del Host
+Dockerfile
+docker-compose.yml
+
+# IDEs
+.idea
+.vscode

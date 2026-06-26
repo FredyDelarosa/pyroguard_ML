@@ -1,0 +1,13 @@
+fastapi[standard]
+sqlalchemy
+geoalchemy2
+psycopg2-binary
+python-dotenv
+geopandas
+pandas
+shapely
+scikit-learn
+joblib
+celery
+redis
+langchain
