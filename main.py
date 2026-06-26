@@ -2,6 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.routes import predict, analitica, zonas
 
+from database.connection import engine
+from database.models import Base
+
+# Crear las tablas en la BD si no existen
+Base.metadata.create_all(bind=engine)
+
 app = FastAPI(
     title="PyroGuard AI - API",
     description="Microservicio RESTful de Inteligencia Artificial para la predicción de incendios forestales usando Machine Learning Híbrido (K-Means + Isolation Forest) y LangChain.",
