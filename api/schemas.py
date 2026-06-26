@@ -40,3 +40,9 @@ class ZonaRiesgoPublico(BaseModel):
     nivel_riesgo: str
 
     model_config = ConfigDict(from_attributes=True)
+
+class ZonaSimple(BaseModel):
+    id_zona: UUID
+    nombre: str
+
+    model_config = ConfigDict(from_attributes=True)

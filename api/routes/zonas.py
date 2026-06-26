@@ -6,9 +6,18 @@ from typing import List
 
 from database.connection import get_db
 from database.models import ZonaProtegida, PrediccionRiesgo
-from api.schemas import ZonaCreate, ZonaResponse, ZonaRiesgoPublico
+from api.schemas import ZonaCreate, ZonaResponse, ZonaRiesgoPublico, ZonaSimple
 
 router = APIRouter()
+
+@router.get("/simple", response_model=List[ZonaSimple])
+def listar_zonas_simple(db: Session = Depends(get_db)):
+    """
+    Devuelve únicamente el ID y nombre de las zonas.
+    Ideal para llenar selects o dropdowns en el Frontend de forma ligera (ej. asociar brigada a zona).
+    """
+    zonas = db.query(ZonaProtegida.id_zona, ZonaProtegida.nombre).order_by(ZonaProtegida.nombre.asc()).all()
+    return [ZonaSimple(id_zona=z.id_zona, nombre=z.nombre) for z in zonas]
 
 @router.get("/riesgo-publico", response_model=List[ZonaRiesgoPublico])
 def listar_riesgo_publico(db: Session = Depends(get_db)):
