@@ -5,10 +5,30 @@ from sqlalchemy import func
 from typing import List
 
 from database.connection import get_db
-from database.models import ZonaProtegida
-from api.schemas import ZonaCreate, ZonaResponse
+from database.models import ZonaProtegida, PrediccionRiesgo
+from api.schemas import ZonaCreate, ZonaResponse, ZonaRiesgoPublico
 
 router = APIRouter()
+
+@router.get("/riesgo-publico", response_model=List[ZonaRiesgoPublico])
+def listar_riesgo_publico(db: Session = Depends(get_db)):
+    """
+    Devuelve la lista de zonas con su último nivel de riesgo,
+    ideal para el portal ciudadano sin exponer datos técnicos (HU23).
+    """
+    zonas = db.query(ZonaProtegida).all()
+    resultado = []
+    
+    for zona in zonas:
+        ultima_pred = db.query(PrediccionRiesgo)\
+            .filter(PrediccionRiesgo.id_zona == zona.id_zona)\
+            .order_by(PrediccionRiesgo.fecha_evaluacion.desc())\
+            .first()
+            
+        nivel = ultima_pred.nivel_riesgo if ultima_pred else "Desconocido"
+        resultado.append(ZonaRiesgoPublico(nombre=zona.nombre, nivel_riesgo=nivel))
+        
+    return resultado
 
 @router.get("/", response_model=List[ZonaResponse])
 def listar_zonas(db: Session = Depends(get_db)):

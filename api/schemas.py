@@ -34,3 +34,9 @@ class ZonaResponse(BaseModel):
     geojson: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+class ZonaRiesgoPublico(BaseModel):
+    nombre: str
+    nivel_riesgo: str
+
+    model_config = ConfigDict(from_attributes=True)
