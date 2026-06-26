@@ -24,8 +24,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar código y modelos
 COPY . .
 
-# Cambiar permisos de la carpeta de modelos en caso de que el worker necesite guardar algo
-RUN chown -R mluser:mluser /app/models || true
+# Cambiar permisos de la carpeta de la app para que celery beat pueda escribir su schedule
+RUN chown -R mluser:mluser /app
 
 # Cambiar al usuario sin privilegios
 USER mluser
