@@ -1,0 +1,62 @@
+{
+	"info": {
+		"name": "PyroGuard ML API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Predecir Riesgo",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"temperatura\": 39.0,\n  \"humedad\": 12.0,\n  \"viento\": 40.0,\n  \"precipitacion\": 0.0,\n  \"id_zona\": \"a3b8398e-7164-44b4-afbd-0dc8e2d4d98a\"\n}"
+				},
+				"url": {
+					"raw": "https://pyroguard.inode.cloud/ml/api/v1/predict",
+					"protocol": "https",
+					"host": [
+						"pyroguard",
+						"inode",
+						"cloud"
+					],
+					"path": [
+						"ml",
+						"api",
+						"v1",
+						"predict"
+					]
+				}
+			}
+		},
+		{
+			"name": "Historial de Predicciones",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://pyroguard.inode.cloud/ml/api/v1/predict/history",
+					"protocol": "https",
+					"host": [
+						"pyroguard",
+						"inode",
+						"cloud"
+					],
+					"path": [
+						"ml",
+						"api",
+						"v1",
+						"predict",
+						"history"
+					]
+				}
+			}
+		}
+	]
+}

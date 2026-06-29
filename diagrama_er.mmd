@@ -1,0 +1,38 @@
+erDiagram
+    ZONAS_PROTEGIDAS {
+        UUID id_zona PK
+        String nombre UK
+        Geometry geometria
+        Float area_hectareas
+    }
+
+    CONDICIONES_METEOROLOGICAS {
+        UUID id_condicion PK
+        UUID id_zona FK
+        DateTime fecha_hora
+        Float temperatura
+        Float humedad
+        Float viento
+        Float precipitacion
+    }
+
+    INCIDENTES_HISTORICOS {
+        UUID id_incidente PK
+        UUID id_zona FK
+        DateTime fecha_deteccion
+        String fuente
+        Geometry coordenada
+    }
+
+    PREDICCIONES_RIESGO {
+        UUID id_prediccion PK
+        UUID id_zona FK
+        DateTime fecha_evaluacion
+        String nivel_riesgo
+        JSONB resultados_json
+        Text directiva_nlp
+    }
+
+    ZONAS_PROTEGIDAS ||--o{ CONDICIONES_METEOROLOGICAS : "registra"
+    ZONAS_PROTEGIDAS ||--o{ INCIDENTES_HISTORICOS : "contiene"
+    ZONAS_PROTEGIDAS ||--o{ PREDICCIONES_RIESGO : "evalua"

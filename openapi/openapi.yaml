@@ -1,0 +1,477 @@
+openapi: 3.1.0
+info:
+  title: PyroGuard AI - API
+  description: "Microservicio RESTful de Inteligencia Artificial para la predicci\xF3\
+    n de incendios forestales usando Machine Learning H\xEDbrido (K-Means + Isolation\
+    \ Forest) y LangChain."
+  version: 1.0.0
+paths:
+  /api/v1/predict/:
+    post:
+      tags:
+      - Predicciones ML
+      summary: Create Prediction
+      operationId: create_prediction_api_v1_predict__post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PredictionRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PredictionResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/predict/history:
+    get:
+      tags:
+      - Predicciones ML
+      summary: Get Prediction History
+      operationId: get_prediction_history_api_v1_predict_history_get
+      parameters:
+      - name: skip
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 0
+          title: Skip
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 50
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PredictionResponse'
+                title: Response Get Prediction History Api V1 Predict History Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/analitica/incidentes-historicos:
+    get:
+      tags:
+      - "Anal\xEDtica T\xE9cnica (Modelos e Hist\xF3ricos)"
+      summary: Obtener Incidentes Historicos
+      description: "Devuelve los incidentes hist\xF3ricos registrados para cruzar\
+        \ en el mapa.\nNota: Transforma la geometr\xEDa PostGIS a texto para que el\
+        \ frontend la lea."
+      operationId: obtener_incidentes_historicos_api_v1_analitica_incidentes_historicos_get
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 1000
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/analitica/configuracion-umbrales:
+    get:
+      tags:
+      - "Anal\xEDtica T\xE9cnica (Modelos e Hist\xF3ricos)"
+      summary: Ver Umbrales
+      operationId: ver_umbrales_api_v1_analitica_configuracion_umbrales_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UmbralesConfig'
+    put:
+      tags:
+      - "Anal\xEDtica T\xE9cnica (Modelos e Hist\xF3ricos)"
+      summary: Actualizar Umbrales
+      description: Permite a los Analistas ajustar en caliente los pesos de temperatura
+        y humedad.
+      operationId: actualizar_umbrales_api_v1_analitica_configuracion_umbrales_put
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UmbralesConfig'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/analitica/estacionalidad:
+    get:
+      tags:
+      - "Anal\xEDtica T\xE9cnica (Modelos e Hist\xF3ricos)"
+      summary: Estacionalidad Riesgo
+      description: "Genera un mapa de calor mensual de riesgo hist\xF3rico (agrupado\
+        \ por Zona y Mes)\nbasado en los incidentes reales (incendios) de la \xFA\
+        ltima d\xE9cada."
+      operationId: estacionalidad_riesgo_api_v1_analitica_estacionalidad_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/zonas/simple:
+    get:
+      tags:
+      - Zonas Protegidas (PostGIS)
+      summary: Listar Zonas Simple
+      description: "Devuelve \xFAnicamente el ID y nombre de las zonas.\nIdeal para\
+        \ llenar selects o dropdowns en el Frontend de forma ligera (ej. asociar brigada\
+        \ a zona)."
+      operationId: listar_zonas_simple_api_v1_zonas_simple_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/ZonaSimple'
+                type: array
+                title: Response Listar Zonas Simple Api V1 Zonas Simple Get
+  /api/v1/zonas/riesgo-publico:
+    get:
+      tags:
+      - Zonas Protegidas (PostGIS)
+      summary: Listar Riesgo Publico
+      description: "Devuelve la lista de zonas con su \xFAltimo nivel de riesgo,\n\
+        ideal para el portal ciudadano sin exponer datos t\xE9cnicos (HU23)."
+      operationId: listar_riesgo_publico_api_v1_zonas_riesgo_publico_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/ZonaRiesgoPublico'
+                type: array
+                title: Response Listar Riesgo Publico Api V1 Zonas Riesgo Publico
+                  Get
+  /api/v1/zonas/:
+    get:
+      tags:
+      - Zonas Protegidas (PostGIS)
+      summary: Listar Zonas
+      description: "Devuelve la lista de todas las Zonas Protegidas registradas en\
+        \ PostGIS, incluyendo su geometr\xEDa GeoJSON."
+      operationId: listar_zonas_api_v1_zonas__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/ZonaResponse'
+                type: array
+                title: Response Listar Zonas Api V1 Zonas  Get
+    post:
+      tags:
+      - Zonas Protegidas (PostGIS)
+      summary: Crear Zona Protegida
+      description: Crea una nueva zona de monitoreo recibiendo el GeoJSON dibujado
+        por el Administrador (HU22).
+      operationId: crear_zona_protegida_api_v1_zonas__post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ZonaCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ZonaResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/zonas/{id_zona}/clima:
+    get:
+      tags:
+      - Zonas Protegidas (PostGIS)
+      summary: Obtener Clima Zona
+      description: "Devuelve las \xFAltimas condiciones meteorol\xF3gicas registradas\
+        \ para una zona (HU28).\nSe expone para que el backend operativo lo consuma\
+        \ en su portal ciudadano."
+      operationId: obtener_clima_zona_api_v1_zonas__id_zona__clima_get
+      parameters:
+      - name: id_zona
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Id Zona
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /:
+    get:
+      summary: Read Root
+      description: Endpoint de salud del servidor.
+      operationId: read_root__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+components:
+  schemas:
+    CondicionUmbral:
+      properties:
+        temp:
+          type: number
+          title: Temp
+        hum:
+          type: number
+          title: Hum
+      type: object
+      required:
+      - temp
+      - hum
+      title: CondicionUmbral
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    PredictionRequest:
+      properties:
+        temperatura:
+          type: number
+          title: Temperatura
+          description: "Temperatura m\xE1xima en \xB0C"
+          example: 35.5
+        humedad:
+          type: number
+          title: Humedad
+          description: Humedad relativa media en %
+          example: 30.0
+        viento:
+          type: number
+          title: Viento
+          description: "Velocidad del viento m\xE1xima en km/h"
+          example: 15.0
+        precipitacion:
+          type: number
+          title: Precipitacion
+          description: "Precipitaci\xF3n acumulada en mm"
+          example: 0.0
+        id_zona:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Id Zona
+          description: UUID de la zona protegida (opcional)
+      type: object
+      required:
+      - temperatura
+      - humedad
+      - viento
+      - precipitacion
+      title: PredictionRequest
+    PredictionResponse:
+      properties:
+        id_prediccion:
+          type: string
+          format: uuid
+          title: Id Prediccion
+        id_zona:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Id Zona
+        nivel_riesgo:
+          type: string
+          title: Nivel Riesgo
+          description: "Bajo, Medio, Alto, o Cr\xEDtico"
+        detalles_modelos:
+          additionalProperties: true
+          type: object
+          title: Detalles Modelos
+          description: Resultados crudos de KMeans e Isolation Forest
+        directiva_accion:
+          type: string
+          title: Directiva Accion
+          description: "Texto generado por LangChain con la recomendaci\xF3n de mitigaci\xF3\
+            n"
+        fecha_evaluacion:
+          type: string
+          format: date-time
+          title: Fecha Evaluacion
+      type: object
+      required:
+      - id_prediccion
+      - nivel_riesgo
+      - detalles_modelos
+      - directiva_accion
+      - fecha_evaluacion
+      title: PredictionResponse
+    UmbralesConfig:
+      properties:
+        critico:
+          $ref: '#/components/schemas/CondicionUmbral'
+        medio:
+          $ref: '#/components/schemas/CondicionUmbral'
+      type: object
+      required:
+      - critico
+      - medio
+      title: UmbralesConfig
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    ZonaCreate:
+      properties:
+        nombre:
+          type: string
+          maxLength: 255
+          minLength: 3
+          title: Nombre
+        geojson_polygon:
+          additionalProperties: true
+          type: object
+          title: Geojson Polygon
+          description: Diccionario GeoJSON tipo Polygon o MultiPolygon
+      type: object
+      required:
+      - nombre
+      - geojson_polygon
+      title: ZonaCreate
+    ZonaResponse:
+      properties:
+        id_zona:
+          type: string
+          format: uuid
+          title: Id Zona
+        nombre:
+          type: string
+          title: Nombre
+        area_hectareas:
+          type: number
+          title: Area Hectareas
+        geojson:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Geojson
+      type: object
+      required:
+      - id_zona
+      - nombre
+      - area_hectareas
+      title: ZonaResponse
+    ZonaRiesgoPublico:
+      properties:
+        nombre:
+          type: string
+          title: Nombre
+        nivel_riesgo:
+          type: string
+          title: Nivel Riesgo
+      type: object
+      required:
+      - nombre
+      - nivel_riesgo
+      title: ZonaRiesgoPublico
+    ZonaSimple:
+      properties:
+        id_zona:
+          type: string
+          format: uuid
+          title: Id Zona
+        nombre:
+          type: string
+          title: Nombre
+      type: object
+      required:
+      - id_zona
+      - nombre
+      title: ZonaSimple
+servers:
+- url: /ml

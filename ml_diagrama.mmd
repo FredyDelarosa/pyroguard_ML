@@ -1,0 +1,30 @@
+graph TD
+    subagent[User/Client] --> API[FastAPI / ML_API]
+    API --> PredictRouter[Predict Router]
+    API --> ZonasRouter[Zonas Router]
+    
+    PredictRouter --> MLService[ML Service]
+    PredictRouter --> NLPService[NLP Service]
+    
+    MLService --> IsolationForest[(Isolation Forest Model)]
+    MLService --> KMeans[(KMeans Model)]
+    
+    NLPService --> LocalNLP["Modelo NLP Local <br/>(Implementación Futura)"]
+    
+    ZonasRouter --> DB[(PostGIS Database)]
+    PredictRouter --> DB
+    
+    Celery[Celery Background Worker] --> Redis[(Redis Broker)]
+    Celery --> ExternalAPI[OpenWeather/NASA API]
+    Celery --> DB
+    Celery --> MLService
+    
+    classDef api fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef service fill:#bbf,stroke:#333,stroke-width:2px;
+    classDef db fill:#fdb,stroke:#333,stroke-width:2px;
+    classDef external fill:#bfb,stroke:#333,stroke-width:2px;
+    
+    class API,PredictRouter,ZonasRouter api;
+    class MLService,NLPService service;
+    class DB,Redis db;
+    class LocalNLP,ExternalAPI external;
