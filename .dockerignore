@@ -27,3 +27,9 @@ docker-compose.yml
 # IDEs
 .idea
 .vscode
+
+# Documentación y Diagramas
+docs/
+
+# Archivos generados y temporales
+celerybeat-schedule.*
