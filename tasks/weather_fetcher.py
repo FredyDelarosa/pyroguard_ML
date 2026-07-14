@@ -65,7 +65,16 @@ def fetch_current_weather():
                 
                 # 2. DISPARAR LA INTELIGENCIA ARTIFICIAL AUTOMÁTICAMENTE
                 print(f"Evaluando Riesgo con IA para {zona.nombre}...")
-                ml_result = evaluate_risk(temp=temp, hum=hum, wind=wind, prec=prec)
+                
+                # Extraemos las estadísticas relativas (Z-Score) de esta zona
+                stats = {
+                    'temp_mean': zona.temp_mean, 'temp_std': zona.temp_std,
+                    'hum_mean': zona.hum_mean, 'hum_std': zona.hum_std,
+                    'viento_mean': zona.viento_mean, 'viento_std': zona.viento_std,
+                    'prec_mean': zona.prec_mean, 'prec_std': zona.prec_std
+                }
+                
+                ml_result = evaluate_risk(temp=temp, hum=hum, wind=wind, prec=prec, stats=stats)
                 
                 nivel_riesgo = ml_result["nivel_riesgo"]
                 detalles = ml_result["detalles"]
@@ -87,6 +96,10 @@ def fetch_current_weather():
                 
             else:
                 print(f"[ERROR] Open-Meteo falló para {zona.nombre}: HTTP {response.status_code}")
+                
+            # Pausa de 2 segundos para evitar bloqueo de Open-Meteo (Error 503/429)
+            import time
+            time.sleep(2)
 
         db.commit()
         print("Tarea 'fetch_current_weather' completada. Base de datos e Inferencias actualizadas.")
