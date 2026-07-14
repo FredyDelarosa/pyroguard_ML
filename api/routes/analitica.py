@@ -148,3 +148,68 @@ def obtener_serie_tiempo(id_zona: str, dias: int = 7, db: Session = Depends(get_
         "clima": serie_clima,
         "predicciones": serie_riesgo
     }
+
+# ==============================================================
+# HU: Correlación entre Variables Climáticas y Riesgo/Anomalías
+# ==============================================================
+import pandas as pd
+
+@router.get("/correlaciones-clima/{id_zona}")
+def obtener_correlaciones_clima(id_zona: str, db: Session = Depends(get_db)):
+    """
+    Calcula la matriz de correlación de Pearson entre las variables meteorológicas
+    (Temperatura, Humedad, Viento) y el Anomaly Score (Nivel de riesgo de la IA).
+    Útil para el Analista para descubrir qué variable dispara más el riesgo en la reserva.
+    """
+    from database.models import CondicionMeteorologica, PrediccionRiesgo
+    
+    # Extraemos el clima reciente
+    climas = db.query(CondicionMeteorologica).filter(CondicionMeteorologica.id_zona == id_zona).all()
+    # Extraemos las predicciones recientes
+    predicciones = db.query(PrediccionRiesgo).filter(PrediccionRiesgo.id_zona == id_zona).all()
+    
+    if not climas or not predicciones:
+        return {"error": "No hay suficientes datos históricos para esta zona."}
+        
+    # Convertimos a DataFrames de Pandas
+    df_clima = pd.DataFrame([{
+        "fecha": c.fecha_hora.replace(microsecond=0),
+        "temp": c.temperatura,
+        "hum": c.humedad,
+        "viento": c.viento
+    } for c in climas])
+    
+    df_pred = pd.DataFrame([{
+        "fecha": p.fecha_evaluacion.replace(microsecond=0),
+        "anomaly_score": p.resultados_json.get("anomaly_score", 0) if p.resultados_json else 0
+    } for p in predicciones])
+    
+    # Ordenar y cruzar por fecha (usamos merge_asof para emparejar la predicción más cercana al clima)
+    df_clima = df_clima.sort_values("fecha")
+    df_pred = df_pred.sort_values("fecha")
+    
+    # Cruzar datos con una tolerancia máxima de 2 minutos
+    df_merged = pd.merge_asof(df_clima, df_pred, on="fecha", direction="nearest", tolerance=pd.Timedelta("2min"))
+    
+    # Eliminar nulos en caso de que alguna medición no tenga predicción emparejada
+    df_merged = df_merged.dropna()
+    
+    if len(df_merged) < 3:
+        return {"error": "Se requieren al menos 3 registros pareados para calcular una correlación válida."}
+        
+    # Calcular matriz de correlación de Pearson
+    matriz_corr = df_merged[["temp", "hum", "viento", "anomaly_score"]].corr(method="pearson")
+    
+    # Formatear respuesta para el Frontend (evitando los NaN si hay desviación estándar 0)
+    matriz_corr = matriz_corr.fillna(0)
+    
+    return {
+        "id_zona": id_zona,
+        "muestras_analizadas": len(df_merged),
+        "correlaciones_con_riesgo": {
+            "temperatura": round(matriz_corr.loc["temp", "anomaly_score"], 4),
+            "humedad": round(matriz_corr.loc["hum", "anomaly_score"], 4),
+            "viento": round(matriz_corr.loc["viento", "anomaly_score"], 4)
+        },
+        "matriz_completa": matriz_corr.to_dict()
+    }
