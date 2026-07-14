@@ -79,8 +79,15 @@ def crear_zona_protegida(zona_in: ZonaCreate, db: Session = Depends(get_db)):
     try:
         from sqlalchemy import text
         insert_query = text("""
-            INSERT INTO zonas_protegidas (nombre, geometria)
-            VALUES (:nombre, ST_SetSRID(ST_GeomFromGeoJSON(:geojson), 4326))
+            INSERT INTO zonas_protegidas (
+                nombre, geometria, 
+                temp_mean, temp_std, hum_mean, hum_std, 
+                viento_mean, viento_std, prec_mean, prec_std
+            )
+            VALUES (
+                :nombre, ST_SetSRID(ST_GeomFromGeoJSON(:geojson), 4326),
+                20.30, 2.07, 80.49, 9.76, 10.46, 4.52, 5.34, 10.69
+            )
             RETURNING id_zona, nombre, area_hectareas;
         """)
         

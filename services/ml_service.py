@@ -6,19 +6,29 @@ from pathlib import Path
 MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
 
 try:
-    scaler = joblib.load(MODELS_DIR / "scaler.joblib")
     kmeans = joblib.load(MODELS_DIR / "kmeans.joblib")
     iso_forest = joblib.load(MODELS_DIR / "iso_forest.joblib")
 except FileNotFoundError:
     raise RuntimeError("No se encontraron los archivos .joblib en la carpeta ML/models/.")
 
-def evaluate_risk(temp: float, hum: float, wind: float, prec: float) -> dict:
+def evaluate_risk(temp: float, hum: float, wind: float, prec: float, stats: dict = None) -> dict:
 
-    # 1. Preparar el vector de entrada en el orden exacto de entrenamiento
-    input_data = np.array([[temp, hum, wind, prec]])
+    if stats is None:
+        # Valores de respaldo en caso de que no se pase una zona (Global de Chiapas)
+        stats = {
+            'temp_mean': 20.30, 'temp_std': 2.07,
+            'hum_mean': 80.49, 'hum_std': 9.76,
+            'viento_mean': 10.46, 'viento_std': 4.52,
+            'prec_mean': 5.34, 'prec_std': 10.69
+        }
+
+    # 1. Calcular Z-Scores manuales (Local Scaling)
+    temp_z = (temp - stats['temp_mean']) / (stats['temp_std'] if stats['temp_std'] > 0 else 1.0)
+    hum_z = (hum - stats['hum_mean']) / (stats['hum_std'] if stats['hum_std'] > 0 else 1.0)
+    wind_z = (wind - stats['viento_mean']) / (stats['viento_std'] if stats['viento_std'] > 0 else 1.0)
+    prec_z = (prec - stats['prec_mean']) / (stats['prec_std'] if stats['prec_std'] > 0 else 1.0)
     
-    # 2. Escalar datos
-    scaled_data = scaler.transform(input_data)
+    scaled_data = np.array([[temp_z, hum_z, wind_z, prec_z]])
     
     # 3. Inferencia K-Means (Devuelve el ID del clúster)
     cluster_id = int(kmeans.predict(scaled_data)[0])

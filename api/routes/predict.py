@@ -14,18 +14,28 @@ router = APIRouter()
 @router.post("/", response_model=PredictionResponse)
 def create_prediction(request: PredictionRequest, db: Session = Depends(get_db)):
 
-    # 1. Validar si la zona existe (si el usuario mandó un id_zona)
+    # 1. Validar si la zona existe y obtener sus estadísticas
+    stats = None
     if request.id_zona:
         zona = db.query(ZonaProtegida).filter(ZonaProtegida.id_zona == request.id_zona).first()
         if not zona:
             raise HTTPException(status_code=404, detail="La zona protegida enviada no existe en la BD.")
+        
+        # Extraer estadísticas guardadas en la BD para el Local Scaling
+        stats = {
+            'temp_mean': zona.temp_mean, 'temp_std': zona.temp_std,
+            'hum_mean': zona.hum_mean, 'hum_std': zona.hum_std,
+            'viento_mean': zona.viento_mean, 'viento_std': zona.viento_std,
+            'prec_mean': zona.prec_mean, 'prec_std': zona.prec_std
+        }
 
     # 2. Evaluar riesgo con nuestros modelos pre-entrenados
     ml_result = evaluate_risk(
         temp=request.temperatura,
         hum=request.humedad,
         wind=request.viento,
-        prec=request.precipitacion
+        prec=request.precipitacion,
+        stats=stats
     )
     
     nivel_riesgo = ml_result["nivel_riesgo"]
