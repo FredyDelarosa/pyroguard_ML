@@ -31,14 +31,13 @@ def train_and_export():
 
     X = df[features].copy()
 
-    # 1. Escalamiento de datos
-    print("Entrenando StandardScaler...")
+    # 1. Escalamiento de datos (Convertimos a Z-Scores globales para el entrenamiento)
+    print("Convirtiendo datos a Z-Scores...")
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # 2. Entrenamiento K-Means (Contexto de riesgo)
+    # 2. Entrenamiento K-Means (Contexto de riesgo) con datos estandarizados
     print("Entrenando K-Means (n_clusters=4)...")
-    # Utilizamos n_init='auto' recomendado en scikit-learn reciente
     kmeans = KMeans(n_clusters=4, random_state=42, n_init='auto')
     kmeans.fit(X_scaled)
 
@@ -47,17 +46,20 @@ def train_and_export():
     iso_forest = IsolationForest(n_estimators=100, contamination=0.05, random_state=42)
     iso_forest.fit(X_scaled)
 
-    # 4. Exportar Modelos
+    # 4. Exportar Modelos (YA NO EXPORTAMOS EL SCALER)
     os.makedirs(MODELS_DIR, exist_ok=True)
     
-    scaler_path = MODELS_DIR / "scaler.joblib"
     kmeans_path = MODELS_DIR / "kmeans.joblib"
     iso_path = MODELS_DIR / "iso_forest.joblib"
 
     print("Exportando modelos a /ML/models/ ...")
-    joblib.dump(scaler, scaler_path)
     joblib.dump(kmeans, kmeans_path)
     joblib.dump(iso_forest, iso_path)
+
+    # Opcionalmente, podemos borrar el viejo scaler si existe
+    scaler_path = MODELS_DIR / "scaler.joblib"
+    if scaler_path.exists():
+        os.remove(scaler_path)
 
     print("\n¡Entrenamiento y exportación completados con éxito!")
     print(f" - {scaler_path.name}")

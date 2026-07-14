@@ -13,6 +13,16 @@ class ZonaProtegida(Base):
     nombre = Column(String(255), unique=True, nullable=False)
     geometria = Column(Geometry('POLYGON', srid=4326), nullable=False)
     area_hectareas = Column(Float)
+    
+    # Estadísticas históricas para Z-Score (Microclimas)
+    temp_mean = Column(Float, default=0.0)
+    temp_std = Column(Float, default=1.0)
+    hum_mean = Column(Float, default=0.0)
+    hum_std = Column(Float, default=1.0)
+    viento_mean = Column(Float, default=0.0)
+    viento_std = Column(Float, default=1.0)
+    prec_mean = Column(Float, default=0.0)
+    prec_std = Column(Float, default=1.0)
 
 class CondicionMeteorologica(Base):
     __tablename__ = "condiciones_meteorologicas"
