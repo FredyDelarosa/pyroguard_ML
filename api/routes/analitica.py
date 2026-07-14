@@ -93,3 +93,58 @@ def estacionalidad_riesgo(db: Session = Depends(get_db)):
         estacionalidad[zona][mes] = r.total_incidentes
         
     return estacionalidad
+
+# ==============================================================
+# HU: Visualización de Series de Tiempo para Frontend
+# ==============================================================
+from datetime import datetime, timedelta
+
+@router.get("/serie-tiempo/{id_zona}")
+def obtener_serie_tiempo(id_zona: str, dias: int = 7, db: Session = Depends(get_db)):
+    """
+    Devuelve las series de tiempo (clima y riesgo) de los últimos N días para una zona específica.
+    Ideal para graficar en el Frontend (Recharts, Chart.js, etc).
+    """
+    from database.models import CondicionMeteorologica
+    
+    fecha_limite = datetime.utcnow() - timedelta(days=dias)
+    
+    # 1. Obtener serie de clima
+    clima = db.query(CondicionMeteorologica)\
+        .filter(CondicionMeteorologica.id_zona == id_zona)\
+        .filter(CondicionMeteorologica.fecha_hora >= fecha_limite)\
+        .order_by(CondicionMeteorologica.fecha_hora.asc())\
+        .all()
+        
+    serie_clima = [
+        {
+            "fecha": c.fecha_hora,
+            "temperatura": c.temperatura,
+            "humedad": c.humedad,
+            "viento": c.viento,
+            "precipitacion": c.precipitacion
+        } for c in clima
+    ]
+    
+    # 2. Obtener serie de predicciones de riesgo
+    predicciones = db.query(PrediccionRiesgo)\
+        .filter(PrediccionRiesgo.id_zona == id_zona)\
+        .filter(PrediccionRiesgo.fecha_evaluacion >= fecha_limite)\
+        .order_by(PrediccionRiesgo.fecha_evaluacion.asc())\
+        .all()
+        
+    serie_riesgo = [
+        {
+            "fecha": p.fecha_evaluacion,
+            "nivel_riesgo": p.nivel_riesgo,
+            "anomalia": p.resultados_json.get("isolation_forest_anomaly", 1) if p.resultados_json else 1,
+            "anomaly_score": p.resultados_json.get("anomaly_score", 0) if p.resultados_json else 0
+        } for p in predicciones
+    ]
+    
+    return {
+        "id_zona": id_zona,
+        "dias_analizados": dias,
+        "clima": serie_clima,
+        "predicciones": serie_riesgo
+    }
