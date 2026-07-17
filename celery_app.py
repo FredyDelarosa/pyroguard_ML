@@ -15,7 +15,7 @@ app = Celery(
     "pyroguard_tasks",
     broker=REDIS_URL,
     backend=REDIS_URL,
-    include=["tasks.weather_fetcher"]
+    include=["tasks.weather_fetcher", "tasks.report_generator"]
 )
 
 # Configuración adicional de Celery

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.routes import predict, analitica, zonas
+from api.routes import predict, analitica, zonas, reportes
 
 from database.connection import engine
 from database.models import Base
@@ -28,6 +28,7 @@ app.add_middleware(
 app.include_router(predict.router, prefix="/api/v1/predict", tags=["Predicciones ML"])
 app.include_router(analitica.router, prefix="/api/v1/analitica", tags=["Analítica Técnica (Modelos e Históricos)"])
 app.include_router(zonas.router, prefix="/api/v1/zonas", tags=["Zonas Protegidas (PostGIS)"])
+app.include_router(reportes.router, prefix="/api/v1/reportes", tags=["Generador de Reportes (LLM + Celery)"])
 
 @app.get("/")
 def read_root():
