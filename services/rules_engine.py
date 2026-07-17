@@ -72,49 +72,50 @@ class ReportRulesEngine:
             print(f"Error consultando ChromaDB: {e}")
             return []
 
-    def retrieve_historical_incidents(self, meteo_data: dict) -> list:
+    def retrieve_historical_incidents(self, meteo_data: dict, zona_nombre: str = None) -> list:
         """
         [MOTOR HÍBRIDO - FASE RAG HISTÓRICO SQL]
-        Busca en la base de datos PostgreSQL incendios reales pasados que 
-        ocurrieron bajo temperaturas y humedades similares (+/- 15%).
+        Busca en la base de datos PostgreSQL incendios reales pasados.
+        Si se provee la zona, filtra por esa zona en específico.
         """
         if not meteo_data or "temp" not in meteo_data or "hum" not in meteo_data:
             return []
             
-        temp_target = meteo_data["temp"]
-        hum_target = meteo_data["hum"]
-        
         historial_relevante = []
         db: Session = SessionLocal()
         
         try:
-            # Buscamos condiciones meteorológicas similares que tengan fecha idéntica a un incendio
-            # (Asumiendo que el clima se registró el mismo día del incidente).
-            # Para fines prácticos, consultamos incidentes donde el mes coincida o las métricas coincidan si hubiese cruce directo.
-            # Al no tener llave foránea directa, cruzamos por Zona y tolerancia de 1 día,
-            # o simplemente buscamos incidentes en la misma época del año.
-            
-            # Busqueda simplificada: extraer 2 incidentes recientes de la tabla pura para demostrar el sustento.
-            incidentes = db.query(IncidenteHistorico, ZonaProtegida.nombre).join(
+            # Usamos outerjoin para que devuelva los incidentes incluso si la relación con ZonaProtegida está huérfana
+            query = db.query(IncidenteHistorico, ZonaProtegida.nombre).outerjoin(
                 ZonaProtegida, IncidenteHistorico.id_zona == ZonaProtegida.id_zona
-            ).order_by(IncidenteHistorico.fecha_deteccion.desc()).limit(2).all()
+            )
             
+            if zona_nombre:
+                query = query.filter(ZonaProtegida.nombre.ilike(f"%{zona_nombre}%"))
+                
+            incidentes = query.order_by(IncidenteHistorico.fecha_deteccion.desc()).limit(2).all()
+            
+            if not incidentes:
+                return ["(Actualmente no hay incidentes históricos registrados en la base de datos operativa para esta zona o bajo estas condiciones. Omite este dato en la justificación)."]
+                
             for inc, nombre_zona in incidentes:
                 fecha_str = inc.fecha_deteccion.strftime("%Y-%m-%d")
+                nombre_str = nombre_zona if nombre_zona else "Zona Desconocida"
                 historial_relevante.append(
-                    f"Incidente Histórico de Referencia: Detectado el {fecha_str} en la reserva {nombre_zona} (Fuente: {inc.fuente}). "
-                    f"Este evento valida la severidad de las condiciones actuales."
+                    f"Incidente Histórico de Referencia: Detectado el {fecha_str} en la reserva {nombre_str} (Fuente: {inc.fuente}). "
+                    f"Este evento documentado valida la severidad estadística de las condiciones meteorológicas actuales."
                 )
                 
             return historial_relevante
         except Exception as e:
             print(f"Error consultando Base de Datos Histórica: {e}")
-            return []
+            return ["(Error de conexión a la base de datos histórica. Omite este dato en la justificación)."]
         finally:
             db.close()
 
     def build_system_context(self, ml_payload: dict) -> dict:
         nivel_riesgo = ml_payload.get("nivel_riesgo", "Bajo")
+        zona_nombre = ml_payload.get("zona_nombre", None)
         meteo_data = ml_payload.get("meteo_data", {})
         detalles_ml = ml_payload.get("detalles", {})
         
@@ -125,7 +126,7 @@ class ReportRulesEngine:
         rag_fragments = self.retrieve_context(risk_evaluation["search_query"])
         
         # 3. Búsqueda de RAG Histórico (PostgreSQL)
-        historial_sql = self.retrieve_historical_incidents(meteo_data)
+        historial_sql = self.retrieve_historical_incidents(meteo_data, zona_nombre)
         
         # 4. Empaquetar
         return {

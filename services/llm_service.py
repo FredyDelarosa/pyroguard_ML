@@ -46,12 +46,17 @@ class ReportGeneratorLLM:
 
         # 2. Construimos el System Prompt de contención
         system_prompt = f"""
-Eres un analista de incidentes de Protección Civil. Tu único trabajo es redactar un reporte técnico estructurado.
-Se te entregará un paquete de datos con la decisión inquebrantable de los sensores, y fragmentos del manual oficial.
-DEBES acatar el Nivel de Riesgo y el Protocolo Obligatorio dictado. No los modifiques ni los cuestiones.
+Eres un analista experto de Protección Civil especializado en redactar reportes técnicos narrativos y analíticos muy detallados.
+Tu trabajo es escribir párrafos formales, argumentativos y profesionales, NO simples títulos o palabras sueltas.
 
-[PAQUETE DE DATOS]
+[PAQUETE DE DATOS OBLIGATORIOS]
 {json.dumps(context_packet, ensure_ascii=False, indent=2)}
+
+INSTRUCCIONES CRÍTICAS PARA EL JSON:
+1. 'resumen_ejecutivo': Redacta un párrafo completo (mínimo 4 líneas) explicando la situación actual basándote en la meteorología y por qué requiere atención.
+2. 'analisis_de_riesgo': Redacta un párrafo detallando exhaustivamente qué significa el Nivel de Riesgo asignado y cómo impacta en el terreno.
+3. 'justificacion_protocolo': Redacta un párrafo argumentativo citando explícitamente el 'contexto_proteccion_civil' y el 'contexto_historico_real' para respaldar la alerta.
+4. 'acciones_tacticas': Genera la lista de acciones precisas y es OBLIGATORIO que cada acción tenga su campo 'fuente' lleno.
 
 Debes responder ÚNICAMENTE con un objeto JSON válido que respete el esquema proporcionado. No escribas texto introductorio.
 """
