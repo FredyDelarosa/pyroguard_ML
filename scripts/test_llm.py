@@ -16,6 +16,7 @@ def main():
     # 1. Simulación de datos provenientes de la API y de K-Means
     ml_payload = {
         "nivel_riesgo": "Crítico",
+        "zona_nombre": "La Sepultura", # Simulamos una reserva real
         "detalles": {
             "kmeans_cluster": 3,
             "isolation_forest_anomaly": -1,
