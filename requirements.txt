@@ -11,3 +11,7 @@ joblib
 celery
 redis
 langchain
+pymupdf4llm
+chromadb
+sentence-transformers
+llama-cpp-python
