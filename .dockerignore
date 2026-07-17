@@ -33,3 +33,7 @@ docs/
 
 # Archivos generados y temporales
 celerybeat-schedule.*
+
+# Carpetas pesadas que se montan por volumen
+modelos_locales/
+documentos_proteccion_civil/
