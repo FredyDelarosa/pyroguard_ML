@@ -26,29 +26,29 @@ class ReportRulesEngine:
         
         if nivel_riesgo == "crítico":
             return {
-                "severidad": "CRÍTICA (ANOMALÍA EXTREMA)",
-                "accion_forzada": "ACTIVAR PROTOCOLO DE RESPUESTA INMEDIATA. Condiciones climáticas y estadísticas en punto de ignición inminente.",
-                "search_query": "protocolo combate incendio forestal respuesta inmediata evacuación"
+                "severidad": "CRÍTICA (CONDICIONES EXTREMAS)",
+                "accion_forzada": "Alerta Máxima. Las condiciones meteorológicas actuales coinciden estadísticamente con eventos históricos de incendios severos. Riesgo inminente de ignición. Activar protocolos de prevención extrema y preparación para respuesta inmediata.",
+                "search_query": "protocolo prevención alerta máxima riesgo inminente ignición"
             }
             
         if nivel_riesgo == "alto":
             return {
                 "severidad": "ALTA",
-                "accion_forzada": "Alerta Naranja. Desviación climática severa detectada. Desplegar brigadas a zonas vulnerables y trazar brechas cortafuego.",
-                "search_query": "prevención alerta alta despliegue brigadas cortafuego"
+                "accion_forzada": "Alerta Naranja. Desviación climática detectada. Las condiciones son altamente propicias para la propagación del fuego. Desplegar brigadas a zonas vulnerables para monitoreo y trazar brechas cortafuego preventivas.",
+                "search_query": "prevención alerta alta riesgo propagación brigadas cortafuego"
             }
             
         if nivel_riesgo == "medio":
             return {
                 "severidad": "MEDIA",
-                "accion_forzada": "Aviso de atención. Sequedad o vientos elevados. Monitoreo constante de focos de calor satelitales.",
+                "accion_forzada": "Aviso de atención. Sequedad o vientos elevados. Las condiciones climáticas requieren monitoreo constante de focos de calor satelitales.",
                 "search_query": "monitoreo preventivo vigilancia meteorológica focos calor"
             }
             
         # Nivel "Bajo"
         return {
             "severidad": "BAJA",
-            "accion_forzada": "Condiciones meteorológicas estables y dentro del promedio histórico. Continuar rutinas.",
+            "accion_forzada": "Condiciones meteorológicas estables y dentro del promedio histórico. Probabilidad de ignición mínima. Continuar rutinas de mantenimiento.",
             "search_query": "actividades rutinarias prevención mantenimiento"
         }
 
