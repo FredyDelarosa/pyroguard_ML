@@ -15,3 +15,4 @@ pymupdf4llm
 chromadb
 sentence-transformers
 llama-cpp-python
+langchain-text-splitters
