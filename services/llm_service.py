@@ -28,7 +28,7 @@ class ReportGeneratorLLM:
             "properties": {
                 "resumen_ejecutivo": {"type": "string", "description": "Breve narrativa de la situación actual basada en la meteorología."},
                 "analisis_de_riesgo": {"type": "string", "description": "Explicación del nivel de riesgo y la severidad de la anomalía."},
-                "justificacion_protocolo": {"type": "string", "description": "Justificación de las acciones basándose en la literatura de protección civil."},
+                "justificacion_protocolo": {"type": "string", "description": "Justificación de las acciones basándose en la literatura de protección civil y en los incidentes históricos de referencia proporcionados."},
                 "acciones_tacticas": {
                     "type": "array",
                     "items": {
