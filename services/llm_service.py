@@ -11,7 +11,7 @@ class ReportGeneratorLLM:
         # n_ctx=2048 es el tamaño máximo de tokens (suficiente para nuestros RAGs cortos)
         self.llm = Llama(
             model_path=self.model_path,
-            n_ctx=2048,
+            n_ctx=4096, # Contexto aumentado para manejar prompts y respuestas más largas
             n_threads=os.cpu_count() or 4,
             verbose=False # Apagamos los logs internos que ensucian la consola
         )
@@ -74,7 +74,7 @@ Debes responder ÚNICAMENTE con un objeto JSON válido que respete el esquema pr
                 "schema": schema_json
             },
             temperature=0.1, # Muy baja temperatura para evitar alucinaciones, queremos precisión
-            max_tokens=800
+            max_tokens=1500 # Incrementado para evitar que el JSON se corte a medias
         )
 
         # Extraemos el string JSON de la respuesta y lo convertimos a diccionario de Python
