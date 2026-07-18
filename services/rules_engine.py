@@ -72,7 +72,7 @@ class ReportRulesEngine:
             print(f"Error consultando ChromaDB: {e}")
             return []
 
-    def retrieve_historical_incidents(self, meteo_data: dict, zona_nombre: str = None) -> list:
+    def retrieve_historical_incidents(self, meteo_data: dict, zona_nombre: str = None, nivel_riesgo: str = "Bajo") -> list:
         """
         [MOTOR HÍBRIDO - FASE RAG HISTÓRICO SQL]
         Busca en la base de datos PostgreSQL incendios reales pasados.
@@ -101,10 +101,14 @@ class ReportRulesEngine:
             for inc, nombre_zona in incidentes:
                 fecha_str = inc.fecha_deteccion.strftime("%Y-%m-%d")
                 nombre_str = nombre_zona if nombre_zona else "Zona Desconocida"
-                historial_relevante.append(
-                    f"Incidente Histórico de Referencia: Detectado el {fecha_str} en la reserva {nombre_str} (Fuente: {inc.fuente}). "
-                    f"Este evento documentado valida la severidad estadística de las condiciones meteorológicas actuales."
-                )
+                base_str = f"Incidente Histórico de Referencia: Detectado el {fecha_str} en la reserva {nombre_str} (Fuente: {inc.fuente})."
+                
+                if nivel_riesgo.lower() in ["alto", "crítico"]:
+                    base_str += " Este evento documentado alerta sobre la similitud climática, aumentando la probabilidad de incendio."
+                else:
+                    base_str += " Sin embargo, el análisis de ML indica que las condiciones climáticas actuales son seguras y NO reflejan el patrón de este evento pasado."
+                    
+                historial_relevante.append(base_str)
                 
             return historial_relevante
         except Exception as e:
@@ -126,7 +130,7 @@ class ReportRulesEngine:
         rag_fragments = self.retrieve_context(risk_evaluation["search_query"])
         
         # 3. Búsqueda de RAG Histórico (PostgreSQL)
-        historial_sql = self.retrieve_historical_incidents(meteo_data, zona_nombre)
+        historial_sql = self.retrieve_historical_incidents(meteo_data, zona_nombre, nivel_riesgo)
         
         # 4. Empaquetar
         return {

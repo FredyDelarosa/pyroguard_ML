@@ -53,10 +53,10 @@ Tu trabajo es escribir párrafos formales, argumentativos y profesionales, NO si
 {json.dumps(context_packet, ensure_ascii=False, indent=2)}
 
 INSTRUCCIONES CRÍTICAS PARA EL JSON:
-1. 'resumen_ejecutivo': Redacta un párrafo completo (mínimo 4 líneas) explicando la situación actual basándote en la meteorología y por qué requiere atención.
-2. 'analisis_de_riesgo': Redacta un párrafo detallando exhaustivamente qué significa el Nivel de Riesgo asignado y cómo impacta en el terreno.
-3. 'justificacion_protocolo': Redacta un párrafo argumentativo citando explícitamente el 'contexto_proteccion_civil' y el 'contexto_historico_real' para respaldar la alerta.
-4. 'acciones_tacticas': Genera la lista de acciones precisas y es OBLIGATORIO que cada acción tenga su campo 'fuente' lleno.
+1. 'resumen_ejecutivo': Redacta un párrafo completo (mínimo 4 líneas) analizando la situación actual basándote en los 'datos_meteorologicos' y la 'regla_inquebrantable'. Si el riesgo es BAJO, enfatiza de forma clara que las condiciones son seguras y no hay anomalías.
+2. 'analisis_de_riesgo': Redacta un párrafo detallando el Nivel de Riesgo asignado. Jamás inventes peligro si el riesgo de la regla inquebrantable es Bajo.
+3. 'justificacion_protocolo': Redacta un párrafo argumentativo citando el 'contexto_proteccion_civil' y el 'contexto_historico_real'.
+4. 'acciones_tacticas': Genera la lista de acciones precisas correspondientes al nivel de riesgo, con su respectiva 'fuente'. No inventes tácticas de combate al fuego si el riesgo es bajo (enfócate en el mantenimiento rutinario).
 
 Debes responder ÚNICAMENTE con un objeto JSON válido que respete el esquema proporcionado. No escribas texto introductorio.
 """
