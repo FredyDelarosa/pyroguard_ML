@@ -2,7 +2,7 @@ import requests
 import json
 from celery_app import app
 from database.connection import SessionLocal
-from database.models import ZonaProtegida, PrediccionRiesgo
+from database.models import ZonaProtegida, PrediccionRiesgo, CondicionMeteorologica
 from services.rules_engine import ReportRulesEngine
 from services.llm_service import ReportGeneratorLLM
 
@@ -27,19 +27,21 @@ def generate_and_send_report(self, id_zona: str, webhook_url: str):
             print(f"[{self.request.id}] Error: No hay datos de predicción para esta zona.")
             return {"status": "error", "detail": "No hay predicciones recientes para esta zona"}
 
-        # 2. Reconstruir el ml_payload que necesita el motor de reglas
-        # Como no guardamos explícitamente el meteo_data en PrediccionRiesgo en predict.py,
-        # lo ideal sería buscar el último clima asociado, pero por simplicidad de la prueba,
-        # simularemos el meteo_data o lo extraeremos si lo tienes guardado.
-        # Aquí asumiremos valores por defecto o los extraerás correctamente después.
+        # Extraer el clima real almacenado
+        condicion = db.query(CondicionMeteorologica).filter(CondicionMeteorologica.id_zona == id_zona).order_by(CondicionMeteorologica.fecha_hora.desc()).first()
+        temp_real = condicion.temperatura if condicion else 38.5
+        hum_real = condicion.humedad if condicion else 12.0
+        viento_real = condicion.viento if condicion else 45.0
+
+        # 2. Reconstruir el ml_payload
         ml_payload = {
             "nivel_riesgo": prediccion.nivel_riesgo,
             "zona_nombre": zona.nombre,
             "detalles": prediccion.resultados_json or {},
             "meteo_data": {
-                "temp": 38.5, # Debería salir de CondicionMeteorologica, se fija para la prueba
-                "hum": 12.0,
-                "wind": 45.0
+                "temp": temp_real,
+                "hum": hum_real,
+                "wind": viento_real
             }
         }
         
