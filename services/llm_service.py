@@ -53,10 +53,10 @@ Tu trabajo es escribir párrafos formales, argumentativos y profesionales, NO si
 {json.dumps(context_packet, ensure_ascii=False, indent=2)}
 
 INSTRUCCIONES CRÍTICAS PARA EL JSON:
-1. 'resumen_ejecutivo': Redacta un párrafo completo (mínimo 4 líneas) analizando la situación actual basándote en los 'datos_meteorologicos' y la 'regla_inquebrantable'. Si el riesgo es BAJO, enfatiza de forma clara que las condiciones son seguras y no hay anomalías.
-2. 'analisis_de_riesgo': Redacta un párrafo detallando el Nivel de Riesgo asignado. Jamás inventes peligro si el riesgo de la regla inquebrantable es Bajo.
-3. 'justificacion_protocolo': Redacta un párrafo argumentativo citando el 'contexto_proteccion_civil' y el 'contexto_historico_real'.
-4. 'acciones_tacticas': Genera la lista de acciones precisas correspondientes al nivel de riesgo, con su respectiva 'fuente'. No inventes tácticas de combate al fuego si el riesgo es bajo (enfócate en el mantenimiento rutinario).
+1. 'resumen_ejecutivo': Redacta un párrafo completo analizando la meteorología. Si el nivel de riesgo es BAJO, enfatiza que las condiciones son seguras. PROHIBIDO mencionar términos internos como "regla inquebrantable" o "análisis matemático".
+2. 'analisis_de_riesgo': Explica el Nivel de Riesgo asignado. Jamás inventes peligro si el riesgo oficial es Bajo. Redacta de forma natural para el usuario final.
+3. 'justificacion_protocolo': Argumenta las acciones usando el 'contexto_proteccion_civil' y el 'contexto_historico_real'.
+4. 'acciones_tacticas': Extrae una lista de acciones precisas ÚNICAMENTE a partir del texto proporcionado en 'contexto_proteccion_civil'. Como 'fuente', debes usar el nombre del manual o documento oficial mencionado en el contexto (NUNCA uses "Regla Inquebrantable" o tu propio conocimiento como fuente). Si el riesgo es bajo, extrae acciones preventivas o de monitoreo del contexto.
 
 Debes responder ÚNICAMENTE con un objeto JSON válido que respete el esquema proporcionado. No escribas texto introductorio.
 """
