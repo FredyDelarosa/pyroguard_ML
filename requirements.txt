@@ -16,3 +16,4 @@ chromadb
 sentence-transformers
 llama-cpp-python
 langchain-text-splitters
+requests
