@@ -70,8 +70,8 @@ def generate_and_send_report(self, id_zona: str, webhook_url: str):
             print(f"[{self.request.id}] ¡Entregado con éxito al backend operativo!")
             return {"status": "success", "task_id": self.request.id}
         else:
-            print(f"[{self.request.id}] El backend operativo rechazó el webhook. Codigo: {respuesta.status_code}")
-            return {"status": "error", "detail": f"Webhook rechazado: {respuesta.status_code}"}
+            print(f"[{self.request.id}] El backend operativo rechazó el webhook. Codigo: {respuesta.status_code} - Body: {respuesta.text}")
+            return {"status": "error", "detail": f"Webhook rechazado: {respuesta.status_code} - {respuesta.text}"}
             
     except Exception as e:
         print(f"[{self.request.id}] Fallo crítico en la tarea: {str(e)}")
