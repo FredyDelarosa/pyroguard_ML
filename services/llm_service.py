@@ -1,34 +1,32 @@
 import os
 import json
+import requests
 from llama_cpp import Llama
 
 class ReportGeneratorLLM:
     def __init__(self, model_path="/app/modelos_locales/Llama-3-8B-Instruct.Q4_K_M.gguf"):
-        self.model_path = model_path
-        print(f"Cargando motor Llama en memoria desde {self.model_path}...")
+        self.groq_api_key = os.getenv("GROQ_API_KEY")
         
-        # Inicializamos Llama (Optimizado para correr en CPU)
-        # n_ctx=2048 es el tamaño máximo de tokens (suficiente para nuestros RAGs cortos)
-        self.llm = Llama(
-            model_path=self.model_path,
-            n_ctx=4096, # Contexto aumentado para manejar prompts y respuestas más largas
-            n_threads=os.cpu_count() or 4,
-            verbose=False # Apagamos los logs internos que ensucian la consola
-        )
+        if self.groq_api_key:
+            print("Iniciando LLM usando Groq Cloud API (Modo Ultra-Rápido)...")
+            self.llm = None
+        else:
+            self.model_path = model_path
+            print(f"Cargando motor Llama en memoria desde {self.model_path} (Modo CPU Local)...")
+            self.llm = Llama(
+                model_path=self.model_path,
+                n_ctx=4096,
+                n_threads=os.cpu_count() or 4,
+                verbose=False
+            )
 
     def generate_report_json(self, context_packet: dict) -> dict:
-        """
-        Toma el Paquete de Conocimiento del RAG/Reglas y le pide a Llama 3 
-        que redacte el reporte forzando la salida en formato JSON puro.
-        """
-        
-        # 1. Definimos la estructura exacta que queremos que Llama llene
         schema_json = {
             "type": "object",
             "properties": {
-                "resumen_ejecutivo": {"type": "string", "description": "Breve narrativa de la situación actual basada en la meteorología."},
-                "analisis_de_riesgo": {"type": "string", "description": "Explicación del nivel de riesgo y la severidad de la anomalía."},
-                "justificacion_protocolo": {"type": "string", "description": "Justificación de las acciones basándose en la literatura de protección civil y en los incidentes históricos de referencia proporcionados."},
+                "resumen_ejecutivo": {"type": "string"},
+                "analisis_de_riesgo": {"type": "string"},
+                "justificacion_protocolo": {"type": "string"},
                 "acciones_tacticas": {
                     "type": "array",
                     "items": {
@@ -44,7 +42,6 @@ class ReportGeneratorLLM:
             "required": ["resumen_ejecutivo", "analisis_de_riesgo", "justificacion_protocolo", "acciones_tacticas"]
         }
 
-        # 2. Construimos el System Prompt de contención
         system_prompt = f"""
 Eres un analista experto de Protección Civil especializado en redactar reportes técnicos narrativos y analíticos muy detallados.
 Tu trabajo es escribir párrafos formales, argumentativos y profesionales, NO simples títulos o palabras sueltas.
@@ -60,32 +57,48 @@ INSTRUCCIONES CRÍTICAS PARA EL JSON:
 
 Debes responder ÚNICAMENTE con un objeto JSON válido que respete el esquema proporcionado. No escribas texto introductorio.
 """
-
         print("Enviando contexto al LLM para inferencia (generando redacción)...")
         
-        # 3. Llamada al motor LLM (Inferencia)
-        response = self.llm.create_chat_completion(
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": "Genera el reporte final en formato JSON."}
-            ],
-            response_format={
-                "type": "json_object",
-                "schema": schema_json
-            },
-            temperature=0.1, # Muy baja temperatura para evitar alucinaciones, queremos precisión
-            max_tokens=1500 # Incrementado para evitar que el JSON se corte a medias
-        )
-
-        # Extraemos el string JSON de la respuesta y lo convertimos a diccionario de Python
         try:
-            json_response_str = response['choices'][0]['message']['content']
+            if self.groq_api_key:
+                # Inferencia ultrarrápida (Groq Cloud)
+                headers = {
+                    "Authorization": f"Bearer {self.groq_api_key}",
+                    "Content-Type": "application/json"
+                }
+                payload = {
+                    "model": "llama3-8b-8192",
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": "Genera el reporte final en formato JSON respetando estrictamente el esquema."}
+                    ],
+                    "response_format": {"type": "json_object"},
+                    "temperature": 0.1,
+                    "max_tokens": 1500
+                }
+                resp = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload, timeout=30)
+                resp.raise_for_status()
+                json_response_str = resp.json()['choices'][0]['message']['content']
+            else:
+                # Inferencia lenta (CPU Local)
+                response = self.llm.create_chat_completion(
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": "Genera el reporte final en formato JSON."}
+                    ],
+                    response_format={
+                        "type": "json_object",
+                        "schema": schema_json
+                    },
+                    temperature=0.1,
+                    max_tokens=1500
+                )
+                json_response_str = response['choices'][0]['message']['content']
+
             final_report = json.loads(json_response_str)
-            
-            # Le inyectamos los metadatos fijos antes de devolverlo
             final_report["evaluacion_matematica"] = context_packet["analisis_matematico"]
             return final_report
             
         except Exception as e:
             print(f"Error procesando la respuesta del LLM: {e}")
-            return {"error": "El modelo no devolvió un JSON válido.", "raw": response['choices'][0]['message']['content']}
+            return {"error": "El modelo no devolvió un JSON válido.", "raw": str(e)}
