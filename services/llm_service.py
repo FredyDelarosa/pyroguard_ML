@@ -67,7 +67,7 @@ Debes responder ÚNICAMENTE con un objeto JSON válido que respete el esquema pr
                     "Content-Type": "application/json"
                 }
                 payload = {
-                    "model": "llama3-8b-8192",
+                    "model": "llama-3.1-8b-instant",
                     "messages": [
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": "Genera el reporte final en formato JSON respetando estrictamente el esquema."}
