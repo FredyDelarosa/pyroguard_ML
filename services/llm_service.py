@@ -55,7 +55,9 @@ INSTRUCCIONES CRÍTICAS PARA EL JSON:
 3. 'justificacion_protocolo': Argumenta las acciones usando el 'contexto_proteccion_civil' y el 'contexto_historico_real'.
 4. 'acciones_tacticas': Extrae una lista de acciones precisas ÚNICAMENTE a partir del texto proporcionado en 'contexto_proteccion_civil'. Como 'fuente', debes usar el nombre del manual o documento oficial mencionado en el contexto (NUNCA uses "Regla Inquebrantable" o tu propio conocimiento como fuente). Si el riesgo es bajo, extrae acciones preventivas o de monitoreo del contexto.
 
-Debes responder ÚNICAMENTE con un objeto JSON válido que respete el esquema proporcionado. No escribas texto introductorio.
+[ESQUEMA JSON OBLIGATORIO]
+Debes responder ÚNICAMENTE con un objeto JSON válido que respete EXACTAMENTE esta estructura:
+{json.dumps(schema_json, ensure_ascii=False, indent=2)}
 """
         print("Enviando contexto al LLM para inferencia (generando redacción)...")
         
