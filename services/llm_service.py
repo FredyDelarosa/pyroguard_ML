@@ -77,7 +77,8 @@ Debes responder ÚNICAMENTE con un objeto JSON válido que respete el esquema pr
                     "max_tokens": 1500
                 }
                 resp = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload, timeout=30)
-                resp.raise_for_status()
+                if resp.status_code != 200:
+                    raise Exception(f"Error de Groq API: {resp.status_code} - {resp.text}")
                 json_response_str = resp.json()['choices'][0]['message']['content']
             else:
                 # Inferencia lenta (CPU Local)
