@@ -11,6 +11,7 @@ from database.models import ZonaProtegida, CondicionMeteorologica, PrediccionRie
 # Importar nuestros servicios de IA
 from services.ml_service import evaluate_risk
 from services.nlp_service import generate_directive
+import os
 
 @app.task
 def fetch_current_weather():
@@ -82,6 +83,11 @@ def fetch_current_weather():
                 # 3. Generar la alerta con NLP
                 directiva = generate_directive(nivel_riesgo=nivel_riesgo, temp=temp, hum=hum, viento=wind)
                 
+                # Obtener predicción anterior para comparar criticidad
+                prediccion_anterior = db.query(PrediccionRiesgo).filter(
+                    PrediccionRiesgo.id_zona == zona.id_zona
+                ).order_by(PrediccionRiesgo.fecha_evaluacion.desc()).first()
+                
                 # 4. Guardar Predicción Histórica para el Dashboard/Frontend
                 nueva_prediccion = PrediccionRiesgo(
                     id_zona=zona.id_zona,
@@ -91,6 +97,29 @@ def fetch_current_weather():
                     directiva_nlp=directiva
                 )
                 db.add(nueva_prediccion)
+                
+                # 5. Notificar Webhook si aumentó el riesgo a Alto o Crítico
+                niveles = {"Bajo": 1, "Medio": 2, "Alto": 3, "Crítico": 4}
+                nivel_actual_val = niveles.get(nivel_riesgo, 0)
+                nivel_anterior_val = niveles.get(prediccion_anterior.nivel_riesgo if prediccion_anterior else "Bajo", 0)
+                
+                if nivel_actual_val > nivel_anterior_val and nivel_actual_val >= 3:
+                    print(f"⚠️ Aumento de criticidad detectado en {zona.nombre}. Notificando al Backend Operativo...")
+                    backend_url = os.getenv("OPERATIONAL_BACKEND_URL", "http://pyroguard.inode.cloud:8001")
+                    api_key = os.getenv("API_KEY", "test_api_key_123")
+                    try:
+                        requests.post(
+                            f"{backend_url}/api/v1/notificaciones/alertas-criticidad",
+                            headers={"X-API-KEY": api_key},
+                            json={
+                                "id_zona": str(zona.id_zona),
+                                "nivel_riesgo": nivel_riesgo,
+                                "mensaje": f"La zona {zona.nombre} ha subido a riesgo {nivel_riesgo.upper()}. {directiva}"
+                            },
+                            timeout=5
+                        )
+                    except Exception as req_e:
+                        print(f"Error notificando al webhook: {req_e}")
                 
                 print(f"[ALERTA {nivel_riesgo.upper()}] Predicción generada con éxito para {zona.nombre}.")
                 
