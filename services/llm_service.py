@@ -8,7 +8,7 @@ class ReportGeneratorLLM:
         self.groq_api_key = os.getenv("GROQ_API_KEY")
         
         if self.groq_api_key:
-            print("Iniciando LLM usando Groq Cloud API (Modo Ultra-Rápido)...")
+            print("Iniciando LLM usando Groq Cloud API")
             self.llm = None
         else:
             self.model_path = model_path
